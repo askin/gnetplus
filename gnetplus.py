@@ -320,7 +320,7 @@ if __name__ == '__main__':
     try:
         port = sys.argv[1]
     except IndexError:
-        sys.stderr.write("Usage: {0} <serial port>\n".format(sys.argv[0]))
+        sys.stderr.write("Usage: {0} <serial port>, example /dev/ttyUSB0\n".format(sys.argv[0]))
 
     handle = Handle(port)
 
