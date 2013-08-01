@@ -1,5 +1,4 @@
 # gnetplus.py
--------------
 
 ## Python module for interfacing with the Mifare RFID card reader
 
@@ -14,7 +13,6 @@ as the PCR 310U is detected as "Prolific Technology, Inc. PL2303 Serial Port"
 which is a USB-serial device.
 
 ## Communicating with the reader:
----------------------------------
 
 When the reader is plugged into a Linux machine such as a Raspberry Pi,
 Fedora etc, a new serial USB port is assigned.  Check the command "dmesg" 
@@ -33,13 +31,11 @@ The syntax to invoke the script is:
 replace the 0 with the right number assigned.
 
 ## The card to use:
--------------------
 
 The cards that work with this reader are the ISO14443A Card Type, 
 MIFARE(r) Ultra-Light/1K/PRO Cart Types.
 
 ## Example output:
-------------------
 
 - when the reader is inserted into a USB port, the following is a snippet
   of the dmesg output indicating the port assigned:
