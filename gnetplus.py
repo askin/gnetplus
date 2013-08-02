@@ -7,6 +7,10 @@
 # Authors:
 #
 #     Chow Loong Jin <lchow@redhat.com>
+#     Harish Pillay <hpillay@redhat.com>
+#
+# Initial release: July 31, 2013
+# Minor edits: July 31, 2013: giving an example of how to invoke it 
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
