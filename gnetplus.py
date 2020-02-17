@@ -229,6 +229,9 @@ class Handle(object):
     Main class used for interfacing with the card reader.
     """
 
+    KEY_A = 0x60
+    KEY_B = 0x61
+
     def __init__(self, port, baudrate=19200, deviceaddr=0):
         """
         Initializes a Handle instance.
@@ -287,6 +290,121 @@ class Handle(object):
 
         return struct.unpack('>L', response.data)[0]
 
+    def get_data(self, sector, block):
+        self.sendmsg(QueryMessage.REQUEST)
+        response = self.readmsg(sink_events=True)
+
+        print "%s" % response.data
+
+        self.sendmsg(QueryMessage.ANTI_COLLISION)
+        response = self.readmsg(sink_events=True)
+
+        card_id = struct.unpack('>L', response.data)[0]
+
+        encoded = struct.pack('I', card_id)
+
+        self.sendmsg(QueryMessage.SELECT_CARD, encoded)
+        response = self.readmsg(sink_events=True)
+
+        auth_key = struct.pack('B', 0x60)
+        auth_sector = struct.pack('B', 0x00)
+
+        self.sendmsg(QueryMessage.AUTHENTICATE, auth_key + auth_sector)
+        response = self.readmsg(sink_events=True)
+
+        block = struct.pack('B', 0x01)
+        self.sendmsg(QueryMessage.READ_BLOCK, block)
+        response = self.readmsg(sink_events=True)
+
+        print "READ: %s" % response.data
+
+        block = struct.pack('B', 0x01)
+        data = ''
+        for i in "1234567890ABC":
+            data = data + struct.pack('c', i)
+
+        print "LEN: %s" % len(data)
+        for i in range(16 - len(data)):
+            data = data + struct.pack('B', 0x00)
+
+        self.sendmsg(QueryMessage.WRITE_BLOCk, block + data)
+        response = self.readmsg(sink_events=True)
+
+
+        # print struct.unpack('>L', response.data)
+        print "%s %s" % (len(response.data), response.data)
+        # print "Len: %s" % struct.unpack('>B', response.data)
+
+        # return struct.unpack('>L', response.data)[0]
+
+
+    def read_block(self, sector, block, key=KEY_A):
+        """
+        Read give sector's block
+
+        @returns 16Byte long value and 16byte string
+        """
+        self.sendmsg(QueryMessage.REQUEST)
+        response = self.readmsg(sink_events=True)
+
+        self.sendmsg(QueryMessage.ANTI_COLLISION)
+        response = self.readmsg(sink_events=True)
+
+        card_id = struct.unpack('>L', response.data)[0]
+
+        packed_card_id = struct.pack('I', card_id)
+
+        self.sendmsg(QueryMessage.SELECT_CARD, packed_card_id)
+        response = self.readmsg(sink_events=True)
+
+        auth_key = struct.pack('B', key)
+        auth_sector = struct.pack('B', sector)
+
+        self.sendmsg(QueryMessage.AUTHENTICATE, auth_key + auth_sector)
+        response = self.readmsg(sink_events=True)
+
+        packed_block = struct.pack('B', block)
+        self.sendmsg(QueryMessage.READ_BLOCK, packed_block)
+        response = self.readmsg(sink_events=True)
+
+        return response.data
+
+    def write_block(self, sector, block, packet_data, key=KEY_A):
+        """
+        Write to given sector's block
+
+        @returns 16Byte long value and 16byte string
+        """
+        self.sendmsg(QueryMessage.REQUEST)
+        response = self.readmsg(sink_events=True)
+
+        self.sendmsg(QueryMessage.ANTI_COLLISION)
+        response = self.readmsg(sink_events=True)
+
+        card_id = struct.unpack('>L', response.data)[0]
+
+        packed_card_id = struct.pack('I', card_id)
+
+        self.sendmsg(QueryMessage.SELECT_CARD, packed_card_id)
+        response = self.readmsg(sink_events=True)
+
+        auth_key = struct.pack('B', key)
+        auth_sector = struct.pack('B', sector)
+
+        self.sendmsg(QueryMessage.AUTHENTICATE, auth_key + auth_sector)
+        response = self.readmsg(sink_events=True)
+
+
+        for i in range(16 - len(packed_data)):
+            packed_data = packed_data + struct.pack('B', 0x00)
+
+        packed_block = struct.pack('B', block)
+        self.sendmsg(QueryMessage.WRITE_BLOCk, packed_block + data)
+        response = self.readmsg(sink_events=True)
+
+        return response.data
+
+
     def get_version(self):
         """
         Get product version string. May contain null bytes, so be careful when
@@ -332,7 +450,8 @@ if __name__ == '__main__':
         handle.wait_for_card()
 
         try:
-            print "Found card: {0}".format(hex(handle.get_sn()))
+            # print "Found card: {0}".format(hex(handle.get_sn()))
+            handle.get_data(0, 0)
 
         except GNetPlusError:
             print "Tap card again."
